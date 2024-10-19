@@ -2,6 +2,7 @@ DEBUG=0
 FRONTEND_SUPPORTS_RGB565=1
 FORCE_32BIT_ARCH=0
 MMAP_JIT_CACHE=0
+PROFILE ?= 0
 
 UNAME=$(shell uname -a)
 
@@ -488,12 +489,26 @@ else ifeq ($(platform), miyoo)
 	CXX = /opt/miyoo/usr/bin/arm-linux-g++
 	AR = /opt/miyoo/usr/bin/arm-linux-ar
 	SHARED := -shared -nostdlib -Wl,--version-script=link.T
-	fpic := -fPIC -DPIC
+	fpic := -fno-PIC
 	CFLAGS += -fomit-frame-pointer -ffast-math -march=armv5te -mtune=arm926ej-s
 	CFLAGS += -DSMALL_TRANSLATION_CACHE
 	HAVE_DYNAREC := 1
 	CPU_ARCH := arm
-	
+	CFLAGS += -Ofast \
+	-flto=4 -fwhole-program -fuse-linker-plugin \
+	-fdata-sections -ffunction-sections -Wl,--gc-sections \
+	-fno-stack-protector -fno-ident -fomit-frame-pointer \
+	-fno-unroll-loops \
+	-marm
+ifeq ($(PROFILE), YES)
+	CFLAGS += -fprofile-generate=$(HOMEPATH)/profile # rm path if you want dir structure intact at runtime
+	LDFLAGS += -lgcov
+else ifeq ($(PROFILE), APPLY)
+	CFLAGS += -fprofile-use -fbranch-probabilities -Wno-error=coverage-mismatch
+endif
+	ASFLAGS += $(CFLAGS)
+	ARCH = arm
+	MMAP_JIT_CACHE = 1
 
 else ifeq ($(platform), miyoomini)
 	TARGET := $(TARGET_NAME)_plus_libretro.so
