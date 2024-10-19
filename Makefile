@@ -537,7 +537,7 @@ else ifeq ($(platform), miyoomini)
 
 # XYDDS
 else ifeq ($(platform), xydds)
-	TARGET := $(TARGET_NAME)_plus_libretro.so
+	TARGET := $(TARGET_NAME)_libretro.so
 	CC = /opt/xydds/usr/bin/arm-linux-gcc
 	CXX = /opt/xydds/usr/bin/arm-linux-g++
 	AR = /opt/xydds/usr/bin/arm-linux-ar
